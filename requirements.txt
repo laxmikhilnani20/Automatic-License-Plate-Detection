@@ -1,0 +1,10 @@
+Flask
+tensorflow
+opencv-python-headless
+pytesseract
+matplotlib
+numpy
+jupyter
+Werkzeug
+Jinja2
+MarkupSafe
