@@ -7,7 +7,7 @@ from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import pytesseract as pt
 
 model = tf.keras.models.load_model(
-    './object_detection.h5')
+    './object_detection.h5', safe_mode=False)
 
 
 def object_detection(path, filename):
