@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.7-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,15 +13,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire app
+# Copy app
 COPY . .
 
 # Environment variables
 ENV FLASK_APP=WebbApp/app.py
-ENV FLASK_RUN_HOST=0.0.0.0
+ENV PORT=5000
 
-# Expose ports for Flask (5000) and Jupyter (8888)
-EXPOSE 5000 8888
+# Expose port
+EXPOSE $PORT
 
-# The default command runs Flask; Jupyter can be run via docker-compose command override
-CMD ["flask", "run"]
+# Run Flask with dynamic port from Render
+CMD cd /app/WebbApp && python app.py

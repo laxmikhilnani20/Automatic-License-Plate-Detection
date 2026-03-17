@@ -4,9 +4,9 @@ from deeplearning import OCR
 # webserver gateway interface
 app = Flask(__name__)
 
-BASE_PATH = os.getcwd()
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_PATH = os.path.join(
-    BASE_PATH, 'WebbApp/static/upload')
+    BASE_PATH, 'static/upload')
 
 
 @app.route('/', methods=['POST', 'GET'])
