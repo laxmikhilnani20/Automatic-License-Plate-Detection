@@ -23,3 +23,46 @@ This project dataset contains 453 files - images in JPEG format with bounding bo
 - OPTICAL CHARACTER RECOGNITION - OCR
 - NUMBER PLATE WEB APP
 - RAEAL TIME NUMBER PLATE RECOGNITIONT WITH YOLO
+
+#### CLOUD PIPELINE ARCHITECTURE (VLM OCR)
+
+This project features a modern Kaggle and Cloud-ready inference pipeline that bypasses traditional, fragile OCR engines (like PyTesseract) in favor of Google's state-of-the-art **Gemini 2.5 Flash** Vision-Language Model.
+
+```mermaid
+graph TD
+    A([Input Image URL]) --> B[Download Image]
+    B --> C{Is YOLOv5 Loaded?}
+    
+    C -- Yes --> D[Run YOLOv5 ONNX Model]
+    D --> E{Plate Detected?}
+    
+    C -- No --> F[Run InceptionResNetV2 .h5 Model]
+    E -- No (Fallback) --> F
+    
+    E -- Yes --> G[Identify Bounding Box Coordinates]
+    F --> G
+    
+    G --> H[Crop Plate from Original Image]
+    
+    H --> I{Is Crop Valid?}
+    
+    I -- No --> J([Output: NO PLATE DETECTED])
+    
+    I -- Yes --> K[Encode Plate Crop to Base64]
+    
+    K --> L[Construct Prompt for Gemini]
+    L --> M((Google Gemini 2.5 Flash API))
+    
+    M --> N{API Response Success?}
+    
+    N -- Yes --> O[Extract & Clean Text]
+    N -- No --> P([Output: API ERROR])
+    
+    O --> Q([Final Output: Plate Text & Annotated Image])
+```
+
+1. **Object Detection (YOLOv5 & InceptionResNetV2)**: 
+   - **Primary Model**: YOLOv5 is used as the primary detector because it is highly robust to different image scales and angles.
+   - **Fallback Model**: Safely falls back to the original `InceptionResNetV2` model if YOLO fails.
+2. **Text Extraction (Google Gemini 2.5 Flash)**:
+   - Evaluates the raw license plate image via Google's REST API, perfectly extracting text, spacing, and avoiding character confusion (e.g. `6` vs `G`) common in standard OCR techniques.
