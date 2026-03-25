@@ -1,97 +1,68 @@
-# ANPR Local Machine Learning Pipeline
+# Automatic License Plate Detection
 
-This project implements a local machine learning pipeline for Automatic Number Plate Recognition (ANPR) using YOLOv5 for object detection and Tesseract for Optical Character Recognition (OCR). The pipeline is designed to mimic a real production ML workflow and is structured for potential future migration to Azure ML.
+#### RESULTS
+<table><tr>
+<td> <img src= "https://github.com/Asikpalysik/Automatic-License-Plate-Detection/blob/main/Presentation/Test.gif?raw=true" width="100%" align="center"  hspace="5%" vspace="5%"/> </td>
+<td> <img src= "https://user-images.githubusercontent.com/91852182/172154404-ccb2a6b5-deb4-4321-91ff-a8f13457b352.gif" width="100%" align="center"  hspace="5%" vspace="5%"/> </td>
+</tr></table>
 
-**Current Status (Important):** Due to issues encountered within the development environment (persistent tooling errors related to directory creation/access, specifically for the `yolov5` cloned repository, and module import errors between scripts when run via automated tooling), the core ML model training, export, and inference steps could not be fully executed or tested. The scripts for these stages (`04_train_model.py`, `05_export_model.py`, `06_inference_pipeline.py`) have been implemented in terms of their Python code structure and logic, but they rely on placeholder model files or skip actual execution of ML operations. The OCR utility (`07_ocr_utils.py`) was also affected by the unavailability of the Tesseract engine in the environment.
+#### DETECT LICENSE PLATES WITH THE YOLO ALGORITHM
 
-## Pipeline Stages and Scripts
+In Today’s Day and Age Security has become one of the biggest concerns for any organization, and automation of such security is essential. However, many of the current solutions are still not robust in real-world situations, commonly depending on many constraints. In the following project, we will understand how to recognize License number plates using the Python programming language. We will utilize OpenCV for this project in order to identify the license number plates and the python pytesseract for the characters and digits extraction from the plate. As well this project will presents a robust and efficient ALPR system based on the state-of-the-art YOLO object detector. We will Web App with a Python program that automatically recognizes the License Number Plate by the end of this journi. The results have shown that the trained neural network is able to perform with high accuracy of nearly 90-95 percent in recognizing license plates in low resolution images using this system.
 
-The pipeline is broken down into modular scripts found in the `/scripts` directory:
+#### ABOUT DATASET
 
-1.  **`01_parse_annotations.py`**: Parses XML annotation files (VOC format) to extract image metadata and bounding box information.
-2.  **`02_preprocess_dataset.py`**: Converts bounding box coordinates to YOLO format (normalized `class_id`, `center_x`, `center_y`, `width`, `height`).
-3.  **`03_generate_labels.py`**: Splits the dataset into training and testing sets, copies images to `data_images/train` and `data_images/test`, and generates corresponding YOLO label files (`.txt`).
-4.  **`04_train_model.py`**: (Structure Only) Clones the YOLOv5 repository, installs its requirements, and is structured to train the model using `data.yaml`. *Actual training is currently skipped due to environment issues.*
-5.  **`05_export_model.py`**: (Structure Only) Exports the trained YOLOv5 model (e.g., `best.pt`) to ONNX and TorchScript formats. *Uses placeholders due to skipped training.*
-6.  **`06_inference_pipeline.py`**: (Structure Only) Implements the inference pipeline using the exported ONNX model. Includes detection, Non-Maximum Suppression (NMS), and integration with OCR to extract license plate text. *Uses placeholders and simulated detections.*
-7.  **`07_ocr_utils.py`**: Contains utility functions for performing OCR on image crops using Pytesseract, including image preprocessing. *Requires Tesseract OCR engine to be installed.*
+This project dataset contains 453 files - images in JPEG format with bounding box annotations of the car license plates within the image. Annotations are provided in the PASCAL VOC format. Pascal VOC(Visual Object Classes) is a format to store annotations for localizer or Object Detection datasets and is used by different annotation editors and tools to annotate, modify and train Machine Learning models. In PASCAL VOC format, for each image there is a xml annotation file containing image details, bounding box details, classes, rotation and other data.
 
-## Project Directory Structure
+#### TABLE OF CONTENT
 
+- LABELING, UNDERSTAND & COLLECT REQUIRED DATA
+- DATA PROCESSING
+- DEEP LEARNING FOR OBJECT DETECTION
+- PIPELINE OBJECT DETECTION MODEL
+- OPTICAL CHARACTER RECOGNITION - OCR
+- NUMBER PLATE WEB APP
+- RAEAL TIME NUMBER PLATE RECOGNITIONT WITH YOLO
+
+#### CLOUD PIPELINE ARCHITECTURE (VLM OCR)
+
+This project features a modern Kaggle and Cloud-ready inference pipeline that bypasses traditional, fragile OCR engines (like PyTesseract) in favor of Google's state-of-the-art **Gemini 2.5 Flash** Vision-Language Model.
+
+```mermaid
+graph TD
+    A([Input Image URL]) --> B[Download Image]
+    B --> C{Is YOLOv5 Loaded?}
+    
+    C -- Yes --> D[Run YOLOv5 ONNX Model]
+    D --> E{Plate Detected?}
+    
+    C -- No --> F[Run InceptionResNetV2 .h5 Model]
+    E -- No (Fallback) --> F
+    
+    E -- Yes --> G[Identify Bounding Box Coordinates]
+    F --> G
+    
+    G --> H[Crop Plate from Original Image]
+    
+    H --> I{Is Crop Valid?}
+    
+    I -- No --> J([Output: NO PLATE DETECTED])
+    
+    I -- Yes --> K[Encode Plate Crop to Base64]
+    
+    K --> L[Construct Prompt for Gemini]
+    L --> M((Google Gemini 2.5 Flash API))
+    
+    M --> N{API Response Success?}
+    
+    N -- Yes --> O[Extract & Clean Text]
+    N -- No --> P([Output: API ERROR])
+    
+    O --> Q([Final Output: Plate Text & Annotated Image])
 ```
-/anpr_local_pipeline
-├── /data
-│   ├── images/               # Source images (user needs to populate)
-│   └── annotations/          # Source XML annotations (user needs to populate)
-│   └── (data_images/)        # Generated by 03_generate_labels.py (train/test splits for YOLO)
-│       ├── train/
-│       └── test/
-│   └── (placeholder_model/)  # May contain placeholder .pt or .onnx if export scripts are run structurally
-│   └── (sample_test_image.jpg) # Example image for inference (user can provide)
-│   └── (sample_detections_output.jpg) # Example output from inference script
-├── /scripts
-│   ├── 01_parse_annotations.py
-│   ├── 02_preprocess_dataset.py
-│   ├── 03_generate_labels.py
-│   ├── 04_train_model.py
-│   ├── 05_export_model.py
-│   ├── 06_inference_pipeline.py
-│   └── 07_ocr_utils.py
-├── data.yaml                 # YOLOv5 dataset configuration, generated or user-configured
-├── requirements.txt          # Python package dependencies for this pipeline
-├── main.py                   # (Or run_pipeline.py) Main script to orchestrate the pipeline (structure only)
-└── README.md                 # This file
-└── (yolov5/)                 # Cloned YOLOv5 repository (by 04_train_model.py - currently problematic)
-```
 
-## Prerequisites
-
-*   Python 3.8+
-*   Tesseract OCR Engine: Must be installed separately on your system and available in PATH. Installation guide: [https://tesseract-ocr.github.io/tessdoc/Installation.html](https://tesseract-ocr.github.io/tessdoc/Installation.html)
-*   Git (for cloning YOLOv5)
-
-## Setup and Usage (Conceptual - pending environment issue resolution)
-
-1.  **Clone the repository (this project):**
-    ```bash
-    # git clone ... (if this project itself is in a repo)
-    cd anpr_local_pipeline
-    ```
-
-2.  **Install Python dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3.  **Populate Data:**
-    *   Add your raw images to `data/images/`.
-    *   Add corresponding VOC XML annotation files to `data/annotations/`.
-
-4.  **Run the pipeline (using `main.py` - conceptual):**
-    The `main.py` script (to be implemented) would orchestrate the execution of the individual scripts in order.
-    ```bash
-    python main.py
-    ```
-    This would conceptually:
-    *   Parse annotations (`01_parse_annotations.py`).
-    *   Preprocess data to YOLO format (`02_preprocess_dataset.py`).
-    *   Generate labels and split data (`03_generate_labels.py`).
-    *   Train the YOLOv5 model (`04_train_model.py`). **(Currently Blocked)**
-    *   Export the trained model (`05_export_model.py`). **(Currently Blocked/Placeholder)**
-    *   Run inference on a sample image (`06_inference_pipeline.py`). **(Currently Placeholder)**
-
-## Notes on Current Limitations
-
-*   **YOLOv5 Training/Export/Inference:** As mentioned, these core ML steps are structurally defined but not executable due to environment/tooling errors encountered during development. The `yolov5` directory might not be created, or if created, might cause subsequent tool errors.
-*   **Tesseract OCR Engine:** `07_ocr_utils.py` requires the Tesseract engine to be installed on the system. The script includes checks and will log errors if it's not found.
-*   **Module Imports for Scripts:** When running scripts like `06_inference_pipeline.py` directly within some automated tooling, there were issues importing sibling modules (e.g., `ocr_utils`). A `main.py` orchestrator or running as part of a package would typically resolve this in a standard Python environment.
-
-## Future Readiness for Azure
-
-The modular script-based approach is designed for easier migration to Azure Machine Learning:
-*   Each script can be adapted into an Azure ML pipeline component.
-*   Local paths in `data.yaml` and scripts can be parameterized to use Azure Blob Storage URLs.
-*   `04_train_model.py` could be wrapped in an Azure ML Job for scalable training.
-*   The exported ONNX model could be deployed using Azure Functions or Azure Kubernetes Service (AKS) via Azure ML.
-
-This local setup serves as the foundational work for such a cloud-based MLOps workflow.
+1. **Object Detection (YOLOv5 & InceptionResNetV2)**: 
+   - **Primary Model**: YOLOv5 is used as the primary detector because it is highly robust to different image scales and angles.
+   - **Fallback Model**: Safely falls back to the original `InceptionResNetV2` model if YOLO fails.
+2. **Text Extraction (Google Gemini 2.5 Flash)**:
+   - Evaluates the raw license plate image via Google's REST API, perfectly extracting text, spacing, and avoiding character confusion (e.g. `6` vs `G`) common in standard OCR techniques.
